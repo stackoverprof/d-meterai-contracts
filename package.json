@@ -9,5 +9,8 @@
 		"hardhat-gas-reporter": "^1.0.9",
 		"prettier": "^2.7.1",
 		"solidity-coverage": "^0.8.2"
+	},
+	"dependencies": {
+		"@openzeppelin/contracts": "^4.7.3"
 	}
 }

@@ -2,7 +2,6 @@ import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
-import './tasks/block-number';
 import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 import 'dotenv/config';
