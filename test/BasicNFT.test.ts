@@ -2,7 +2,7 @@ import { ethers } from 'hardhat';
 import { assert } from 'chai';
 import { BasicNFT, BasicNFT__factory } from '../typechain-types';
 
-describe('BasicNFT functionality', () => {
+describe('BasicNFT functionality tests', () => {
 	let basicNFTFactory: BasicNFT__factory;
 	let basicNFT: BasicNFT;
 
