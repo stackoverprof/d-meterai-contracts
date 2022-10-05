@@ -14,7 +14,7 @@ describe('DigitalMeterai functionality tests', () => {
 		await DigitalMeterai.deployed();
 	});
 
-	it('Initializes the NFT Correctly.', async () => {
+	it('Should initializes the NFT Correctly.', async () => {
 		const name = await DigitalMeterai.name();
 		const symbol = await DigitalMeterai.symbol();
 
@@ -28,8 +28,8 @@ describe('DigitalMeterai functionality tests', () => {
 		assert.equal(currentValue.toString(), expectedValue.toString());
 	});
 
-	it('[PENERBITAN] Should mint several NFT, and updates appropriately', async () => {
-		const txResponse = await DigitalMeterai.mint(24, ethers.utils.parseEther('4'));
+	it('Should mint several NFT, and updates appropriately', async () => {
+		const txResponse = await DigitalMeterai.mint(24, ethers.utils.parseEther('0.0005'));
 
 		await txResponse.wait(1);
 
@@ -56,8 +56,8 @@ describe('DigitalMeterai functionality tests', () => {
 		assert.equal(document, document_expected);
 	});
 
-	it('[PEMBELIAN] Should change ownership when someone buy the NFT', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+	it('Should change ownership when someone buy the NFT', async () => {
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		// buyer buy nft
@@ -85,8 +85,8 @@ describe('DigitalMeterai functionality tests', () => {
 		assert.equal(status, status_expected);
 	});
 
-	it('[PEMBUBUHAN] Should change token status to 2 (Used) when the token is bound to a document', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+	it('Should change token status to 2 (Bound) when the token is bound to a document', async () => {
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		// buyer buy nft

@@ -17,22 +17,28 @@ describe('DigitalMeterai negative and prevention tests', () => {
 	it('Should fail to mint if not contract owner', async () => {
 		const [owner, addr1] = await ethers.getSigners();
 
-		const OwnerMinting = DigitalMeterai.connect(owner).mint(1, ethers.utils.parseEther('4'));
+		const OwnerMinting = DigitalMeterai.connect(owner).mint(
+			1,
+			ethers.utils.parseEther('0.0005')
+		);
 		await expect(OwnerMinting).to.not.be.reverted;
 
-		const NonOwnerMinting = DigitalMeterai.connect(addr1).mint(1, ethers.utils.parseEther('4'));
+		const NonOwnerMinting = DigitalMeterai.connect(addr1).mint(
+			1,
+			ethers.utils.parseEther('0.0005')
+		);
 		await expect(NonOwnerMinting).to.be.reverted;
 	});
 
 	it('Should fail to buy if balance is insufficient', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		const tokenId = 0;
 		const [_, buyer] = await ethers.getSigners();
 
 		const call = DigitalMeterai.connect(buyer).buy(tokenId, {
-			value: 1,
+			value: ethers.utils.parseEther('0.0001'),
 		});
 
 		await expect(call).to.be.revertedWithCustomError(
@@ -42,7 +48,7 @@ describe('DigitalMeterai negative and prevention tests', () => {
 	});
 
 	it('Should fail to buy if token is already sold', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		const tokenId = 0;
@@ -68,7 +74,7 @@ describe('DigitalMeterai negative and prevention tests', () => {
 	});
 
 	it('Should fail to bind if not yet bought', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		const tokenId = 0;
@@ -84,7 +90,7 @@ describe('DigitalMeterai negative and prevention tests', () => {
 	});
 
 	it('Should fail to bind if already bound', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		const tokenId = 0;
@@ -112,7 +118,7 @@ describe('DigitalMeterai negative and prevention tests', () => {
 	});
 
 	it('Should fail to bind if not token owner', async () => {
-		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
+		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('0.0005'));
 		await txResponse.wait(1);
 
 		const tokenId = 0;
