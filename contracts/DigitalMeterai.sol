@@ -7,7 +7,7 @@ pragma solidity ^0.8.9;
 
 contract DigitalMeterai is ERC721, Ownable {
     // EVENTS
-    event DMT___Minted(address _seller, uint256 _price);
+    event DMT___Minted(address _seller, uint256 quantity, uint256 _price);
     event DMT___Bought(address _seller, address _buyer, uint256 _price);
     event DMT___Bound(address _owner, string document);
 
@@ -28,7 +28,7 @@ contract DigitalMeterai is ERC721, Ownable {
     // DATABASE
     mapping (uint256 => uint256) private tokenIdToPrice; // Pricing
     mapping (uint256 => Status) private tokenIdToStatus; // Status
-    mapping (uint256 => string) private tokenIdToDocument; // File Binding
+    mapping (uint256 => string) private tokenIdToDocument; // File binding
 
     // CONSTRUCTOR
     constructor() ERC721(TOKEN_NAME, TOKEN_SYMBOL) {}
@@ -61,18 +61,20 @@ contract DigitalMeterai is ERC721, Ownable {
 
     // ACTION FUNCTIONS
     /* mint a new d-meterai only by Contract Owner: Government */
-    function mint(uint256 price) external onlyOwner {
-        // Mint new token
-        _safeMint(msg.sender, id);
+    function mint(uint256 quantity, uint256 price) external onlyOwner {
+        for (uint256 i = 0; i < quantity; i++) {
+            // Mint new token
+            _safeMint(msg.sender, id);
 
-        // Set initial data
-        tokenIdToPrice[id] = price;
-        tokenIdToStatus[id] = Status.Available;
-        tokenIdToDocument[id] = "";
-        id++;
+            // Set initial data
+            tokenIdToPrice[id] = price;
+            tokenIdToStatus[id] = Status.Available;
+            tokenIdToDocument[id] = "";
+            id++;
 
+        }
         // Emit event
-        emit DMT___Minted(msg.sender, price);
+        emit DMT___Minted(msg.sender, quantity, price);
     }
 
     /* buy a d-meterai, only can be transacted once from government to a person */

@@ -28,11 +28,11 @@ describe('DigitalMeterai functionality tests', () => {
 	});
 
 	it('Should mint an NFT, and updates appropriately', async () => {
-		const txResponse = await DigitalMeterai.mint(1);
+		const txResponse = await DigitalMeterai.mint(24, 1);
 		await txResponse.wait(1);
 
 		const tokenCounter_result = await DigitalMeterai.getTokensTotal();
-		const tokenCounter_expected = 1;
+		const tokenCounter_expected = 24;
 		assert.equal(tokenCounter_result.toString(), tokenCounter_expected.toString());
 	});
 });
