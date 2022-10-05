@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 
 pragma solidity ^0.8.9;
 
+
 contract DigitalMeterai is ERC721, Ownable {
     // EVENTS
     event DMT___Minted(address _seller, uint256 quantity, uint256 _price);
@@ -12,9 +13,10 @@ contract DigitalMeterai is ERC721, Ownable {
     event DMT___Bound(address _owner, string document);
 
     // ERRORS
-    error DMT___UnmatchedStatus(string message);
-    error DMT___InvalidTransaction(string message);
-    error DMT___ForbiddenActions(string message);
+    error DMT___UnmatchedStatusNotAvailable();
+    error DMT___UnmatchedStatusNotPaid();
+    error DMT___InvalidTransactionIncorrectValue();
+    error DMT___ForbiddenActionsNotOwner();
 
     // TYPE DECLARATIONS
     enum Status {
@@ -86,11 +88,11 @@ contract DigitalMeterai is ERC721, Ownable {
     function buy(uint256 _tokenId) external payable {
         // Only if never Paid yet
         Status status = tokenIdToStatus[_tokenId];
-        if (status != Status.Available) revert DMT___UnmatchedStatus('Not Available');
+        if (status != Status.Available) revert DMT___UnmatchedStatusNotAvailable();
 
         // Only if price is correct
         uint256 price = tokenIdToPrice[_tokenId];
-        if (msg.value != price) revert DMT___InvalidTransaction('Incorrect value');
+        if (msg.value != price) revert DMT___InvalidTransactionIncorrectValue();
         
         // Transaction transfer
         address seller = ownerOf(_tokenId);
@@ -108,11 +110,11 @@ contract DigitalMeterai is ERC721, Ownable {
     function bind(uint256 _tokenId, string memory _document) external {
         // Only if status is Paid
         Status status = tokenIdToStatus[_tokenId];
-        if (status != Status.Paid) revert DMT___UnmatchedStatus('Not Paid');
+        if (status != Status.Paid) revert DMT___UnmatchedStatusNotPaid();
 
         // Only owner can bind
         address owner = ownerOf(_tokenId);
-        if (owner != msg.sender) revert DMT___ForbiddenActions('Not owner');
+        if (owner != msg.sender) revert DMT___ForbiddenActionsNotOwner();
 
         // Update binding
         tokenIdToDocument[_tokenId] = _document;

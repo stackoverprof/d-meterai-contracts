@@ -28,8 +28,9 @@ describe('DigitalMeterai functionality tests', () => {
 		assert.equal(currentValue.toString(), expectedValue.toString());
 	});
 
-	it('Should mint several NFT, and updates appropriately', async () => {
-		const txResponse = await DigitalMeterai.mint(24, 1);
+	it('[PENERBITAN] Should mint several NFT, and updates appropriately', async () => {
+		const txResponse = await DigitalMeterai.mint(24, ethers.utils.parseEther('4'));
+
 		await txResponse.wait(1);
 
 		// assert if the token counter is updated
@@ -55,7 +56,7 @@ describe('DigitalMeterai functionality tests', () => {
 		assert.equal(document, document_expected);
 	});
 
-	it('Should change ownership when someone buy the NFT', async () => {
+	it('[PEMBELIAN] Should change ownership when someone buy the NFT', async () => {
 		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
 		await txResponse.wait(1);
 
@@ -84,13 +85,12 @@ describe('DigitalMeterai functionality tests', () => {
 		assert.equal(status, status_expected);
 	});
 
-	it('Should change token status to 2 (Used) when the token is bound to a document', async () => {
+	it('[PEMBUBUHAN] Should change token status to 2 (Used) when the token is bound to a document', async () => {
 		const txResponse = await DigitalMeterai.mint(1, ethers.utils.parseEther('4'));
 		await txResponse.wait(1);
 
 		// buyer buy nft
-		const [seller, buyer] = await ethers.getSigners();
-		const sellerInitialBalance = await seller.getBalance();
+		const [_, buyer] = await ethers.getSigners();
 
 		const tokenId = 0;
 		const price = await DigitalMeterai.getTokenPrice(tokenId);
