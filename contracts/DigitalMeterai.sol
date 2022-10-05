@@ -84,7 +84,7 @@ contract DigitalMeterai is ERC721, Ownable {
         emit DMT___Minted(msg.sender, quantity, price);
     }
 
-    /* buy a d-meterai, only can be transacted once from government to a person */
+    /* ownership change, only can be transacted once from minter to a first buyer */
     function buy(uint256 _tokenId) external payable {
         // Only if never Paid yet
         Status status = tokenIdToStatus[_tokenId];
