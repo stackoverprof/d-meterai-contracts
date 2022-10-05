@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
 pragma solidity ^0.8.9;
 
@@ -10,6 +10,11 @@ contract DigitalMeterai is ERC721, Ownable {
     event DMT___Minted(address _seller, uint256 quantity, uint256 _price);
     event DMT___Bought(address _seller, address _buyer, uint256 _price);
     event DMT___Bound(address _owner, string document);
+
+    // ERRORS
+    error DMT___UnmatchedStatus(string message);
+    error DMT___InvalidTransaction(string message);
+    error DMT___ForbiddenActions(string message);
 
     // TYPE DECLARATIONS
     enum Status {
@@ -20,10 +25,10 @@ contract DigitalMeterai is ERC721, Ownable {
 
     // GLOBAL VARIABLES
     uint256 private id = 0;
-    string private constant TOKEN_NAME = "Digital Meterai";
-    string private constant TOKEN_SYMBOL = "DMT";
+    string private constant TOKEN_NAME = 'Digital Meterai';
+    string private constant TOKEN_SYMBOL = 'DMT';
     string private constant TOKEN_URI =
-        "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
+        'ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json';
 
     // DATABASE
     mapping (uint256 => uint256) private tokenIdToPrice; // Pricing
@@ -69,7 +74,7 @@ contract DigitalMeterai is ERC721, Ownable {
             // Set initial data
             tokenIdToPrice[id] = price;
             tokenIdToStatus[id] = Status.Available;
-            tokenIdToDocument[id] = "";
+            tokenIdToDocument[id] = '';
             id++;
 
         }
@@ -81,11 +86,11 @@ contract DigitalMeterai is ERC721, Ownable {
     function buy(uint256 _tokenId) external payable {
         // Only if never Paid yet
         Status status = tokenIdToStatus[_tokenId];
-        require(status == Status.Available, "NFT is already paid or bound");
+        if (status != Status.Available) revert DMT___UnmatchedStatus('Not Available');
 
         // Only if price is correct
         uint256 price = tokenIdToPrice[_tokenId];
-        require(msg.value == price, 'Incorrect value');
+        if (msg.value != price) revert DMT___InvalidTransaction('Incorrect value');
         
         // Transaction transfer
         address seller = ownerOf(_tokenId);
@@ -103,11 +108,11 @@ contract DigitalMeterai is ERC721, Ownable {
     function bind(uint256 _tokenId, string memory _document) external {
         // Only if status is Paid
         Status status = tokenIdToStatus[_tokenId];
-        require(status == Status.Paid, "NFT is not paid yet");
+        if (status != Status.Paid) revert DMT___UnmatchedStatus('Not Paid');
 
         // Only owner can bind
         address owner = ownerOf(_tokenId);
-        require(owner == msg.sender, "Only owner can bind");
+        if (owner != msg.sender) revert DMT___ForbiddenActions('Not owner');
 
         // Update binding
         tokenIdToDocument[_tokenId] = _document;
