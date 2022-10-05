@@ -14,7 +14,7 @@ describe('DigitalMeterai functionality tests', () => {
 		await DigitalMeterai.deployed();
 	});
 
-	it('Initilizes the NFT Correctly.', async () => {
+	it('Initializes the NFT Correctly.', async () => {
 		const name = await DigitalMeterai.name();
 		const symbol = await DigitalMeterai.symbol();
 		assert.equal(name, 'Digital Meterai');
@@ -34,10 +34,6 @@ describe('DigitalMeterai functionality tests', () => {
 		const tokenCounter_result = await DigitalMeterai.getTokensTotal();
 		const tokenCounter_expected = 1;
 		assert.equal(tokenCounter_result.toString(), tokenCounter_expected.toString());
-
-		// const tokenURI_result = await DigitalMeterai.tokenURI(0);
-		// const tokenURI_expected = await DigitalMeterai.TOKEN_URI();
-		// assert.equal(tokenURI_result, tokenURI_expected);
 	});
 });
 
