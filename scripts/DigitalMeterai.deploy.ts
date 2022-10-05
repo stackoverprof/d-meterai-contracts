@@ -10,6 +10,7 @@ const main = async () => {
 
 	console.log('Contract deployed to:', DigitalMeterai.address);
 
+	// Verifying to Etherscan
 	if (network.config.chainId === 5 && process.env.ETHERSCAN_API_KEY) {
 		await DigitalMeterai.deployTransaction.wait(10);
 		await verify(DigitalMeterai.address, []);
