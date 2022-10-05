@@ -41,33 +41,33 @@ contract DigitalMeterai is ERC721, Ownable {
     constructor() ERC721(TOKEN_NAME, TOKEN_SYMBOL) {}
 
     // READ FUNCTIONS
-    /* get the image of d-Meterai */
+    /* Get the image of d-Meterai */
     function tokenURI(uint256) public view virtual override returns (string memory) {
         return TOKEN_URI;
     }
 
-    /* get current status of a d-meterai: Available, Paid, Bound */
+    /* Get current status of a d-meterai: Available, Paid, Bound */
     function getTokenStatus(uint256 _tokenId) public view returns(Status){
         return tokenIdToStatus[_tokenId];        
     }
 
-    /* get the price of a d-meterai */
+    /* Get the price of a d-meterai */
     function getTokenPrice(uint256 _tokenId) public view returns(uint256){
         return tokenIdToPrice[_tokenId];        
     }
 
-    /* get the document bound to a d-meterai */
+    /* Get the document bound to a d-meterai */
     function getTokenDocument(uint256 _tokenId) public view returns(string memory){
         return tokenIdToDocument[_tokenId];        
     }
     
-    /* get the amount of all circulating tokens */
+    /* Get the amount of all circulating tokens */
     function getTokensTotal() public view returns(uint256){
         return id;
     }
 
     // ACTION FUNCTIONS
-    /* mint a new d-meterai only by Contract Owner: Government */
+    /* Mint a new d-meterai only by contract owner */
     function mint(uint256 quantity, uint256 price) external onlyOwner {
         for (uint256 i = 0; i < quantity; i++) {
             // Mint new token
@@ -84,7 +84,7 @@ contract DigitalMeterai is ERC721, Ownable {
         emit DMT___Minted(msg.sender, quantity, price);
     }
 
-    /* ownership change, only can be transacted once from minter to a first buyer */
+    /* Ownership change, only can be transactioned once from minter to a first buyer */
     function buy(uint256 _tokenId) external payable {
         // Only if never Paid yet
         Status status = tokenIdToStatus[_tokenId];
@@ -106,7 +106,7 @@ contract DigitalMeterai is ERC721, Ownable {
         emit DMT___Bought(seller, msg.sender, msg.value);
     }
 
-    /* bind a document to a d-meterai only by owner */
+    /* Bind a document to a d-meterai only by owner */
     function bind(uint256 _tokenId, string memory _document) external {
         // Only if status is Paid
         Status status = tokenIdToStatus[_tokenId];
