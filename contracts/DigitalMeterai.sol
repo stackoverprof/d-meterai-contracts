@@ -2,27 +2,37 @@
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import 'hardhat/console.sol';
 
 pragma solidity ^0.8.9;
 
 
 contract DigitalMeterai is ERC721, Ownable {
     // EVENTS
-    event DMT___Minted(address _seller, uint256 quantity, uint256 _price);
-    event DMT___Bought(address _seller, address _buyer, uint256 _price);
-    event DMT___Bound(address _owner, string document);
+    event DMT___Minted(uint256[] tokenIds);
+    event DMT___Bought(uint256 tokenId);
+    event DMT___Bound();
 
     // ERRORS
     error DMT___UnmatchedStatusNotAvailable();
     error DMT___UnmatchedStatusNotPaid();
     error DMT___InvalidTransactionIncorrectValue();
     error DMT___ForbiddenActionsNotOwner();
+    error DMT___OutOfStock();
 
     // TYPE DECLARATIONS
     enum Status {
         Available,
         Paid,
         Bound
+    }
+
+    struct TokenData {
+        uint256 tokenId;
+        address owner;
+        string document;
+        Status status;
+        uint256 price;
     }
 
     // GLOBAL VARIABLES
@@ -46,29 +56,72 @@ contract DigitalMeterai is ERC721, Ownable {
         return TOKEN_URI;
     }
 
-    /* Get current status of a d-meterai: Available, Paid, Bound */
-    function getTokenStatus(uint256 _tokenId) public view returns(Status){
-        return tokenIdToStatus[_tokenId];        
-    }
-
-    /* Get the price of a d-meterai */
-    function getTokenPrice(uint256 _tokenId) public view returns(uint256){
-        return tokenIdToPrice[_tokenId];        
-    }
-
-    /* Get the document bound to a d-meterai */
-    function getTokenDocument(uint256 _tokenId) public view returns(string memory){
-        return tokenIdToDocument[_tokenId];        
+    /* Get owned tokens data */
+    function getMyTokens() external view returns(TokenData[] memory){
+        TokenData[] memory tokens = new TokenData[](balanceOf(msg.sender));
+        uint256 index = 0;
+        for (uint256 i = 0; i < id; i++) {
+            if (ownerOf(i) == msg.sender) {
+                tokens[index] = TokenData({
+                    tokenId: i,
+                    owner: ownerOf(i),
+                    document: tokenIdToDocument[i],
+                    status: tokenIdToStatus[i],
+                    price: tokenIdToPrice[i]
+                });
+                index++;
+            }
+        }
+        return tokens;
     }
     
     /* Get the amount of all circulating tokens */
-    function getTokensTotal() public view returns(uint256){
+    function getTotalSupply() external view onlyOwner returns(uint256){
         return id;
+    }
+
+    /* Get the amount of all circulating tokens by status */
+    function getTotalSupplyByStatus(Status _status) external view onlyOwner returns(uint256) {
+        uint256 total = 0;
+        for (uint256 i = 0; i < id; i++) {
+            if (tokenIdToStatus[i] == _status) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    /* Get one available token to buy */
+    function getAvailableToken() external view returns(TokenData memory){
+        for (uint256 i = 0; i < id; i++) {
+            if (tokenIdToStatus[i] == Status.Available) {
+                return TokenData({
+                    tokenId: i,
+                    owner: ownerOf(i),
+                    document: tokenIdToDocument[i],
+                    status: tokenIdToStatus[i],
+                    price: tokenIdToPrice[i]
+                });
+            }
+        }
+        revert DMT___OutOfStock();
+    }
+
+    /* Get a token data by tokenId */
+    function getToken(uint256 _tokenId) external onlyOwner view returns(TokenData memory){
+        return TokenData({
+            tokenId: _tokenId,
+            owner: ownerOf(_tokenId),
+            document: tokenIdToDocument[_tokenId],
+            status: tokenIdToStatus[_tokenId],
+            price: tokenIdToPrice[_tokenId]
+        });
     }
 
     // ACTION FUNCTIONS
     /* Mint a new d-meterai only by contract owner */
     function mint(uint256 quantity, uint256 price) external onlyOwner {
+        uint256[] memory tokenIds = new uint256[](quantity);
         for (uint256 i = 0; i < quantity; i++) {
             // Mint new token
             _safeMint(msg.sender, id);
@@ -78,32 +131,32 @@ contract DigitalMeterai is ERC721, Ownable {
             tokenIdToStatus[id] = Status.Available;
             tokenIdToDocument[id] = '';
             id++;
-
         }
         // Emit event
-        emit DMT___Minted(msg.sender, quantity, price);
+        emit DMT___Minted(tokenIds);
     }
 
     /* Ownership change, only can be transactioned once from minter to a first buyer */
-    function buy(uint256 _tokenId) external payable {
+    function buy(uint256 tokenId) external payable {
+
         // Only if never Paid yet
-        Status status = tokenIdToStatus[_tokenId];
+        Status status = tokenIdToStatus[tokenId];
         if (status != Status.Available) revert DMT___UnmatchedStatusNotAvailable();
 
         // Only if price is correct
-        uint256 price = tokenIdToPrice[_tokenId];
+        uint256 price = tokenIdToPrice[tokenId];
         if (msg.value != price) revert DMT___InvalidTransactionIncorrectValue();
         
         // Transaction transfer
-        address seller = ownerOf(_tokenId);
-        _transfer(seller, msg.sender, _tokenId);
+        address seller = ownerOf(tokenId);
+        _transfer(seller, msg.sender, tokenId);
         payable(seller).transfer(msg.value);
 
         // Update status
-        tokenIdToStatus[_tokenId] = Status.Paid;
+        tokenIdToStatus[tokenId] = Status.Paid;
 
         // Emit event
-        emit DMT___Bought(seller, msg.sender, msg.value);
+        emit DMT___Bought(tokenId);
     }
 
     /* Bind a document to a d-meterai only by owner */
@@ -123,6 +176,6 @@ contract DigitalMeterai is ERC721, Ownable {
         tokenIdToStatus[_tokenId] = Status.Bound;
 
         // Emit event
-        emit DMT___Bound(msg.sender, _document);
+        emit DMT___Bound();
     }
 }

@@ -3,6 +3,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
+import 'hardhat-abi-exporter';
 import 'solidity-coverage';
 import 'dotenv/config';
 
@@ -42,6 +43,13 @@ const config: HardhatUserConfig = {
 		currency: 'USD',
 		coinmarketcap: COINMARKETCAP_API_KEY,
 		token: 'ETH',
+	},
+	abiExporter: {
+		path: '../d-meterai-client/abi',
+		runOnCompile: true,
+		clear: true,
+		flat: true,
+		spacing: 2,
 	},
 };
 
