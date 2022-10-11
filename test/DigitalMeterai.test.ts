@@ -182,7 +182,7 @@ describe.only('DigitalMeterai functionality tests', async () => {
 		await expect(call).to.be.revertedWithCustomError(DigitalMeterai, 'ERROR___InvalidStatus');
 	});
 
-	it('Should fail to bind if not yet bought', async () => {
+	it('Prevent binding if not yet bought', async () => {
 		const tokenData = await DigitalMeterai.getAvailableToken();
 		const call = DigitalMeterai.connect(address3).bind(
 			tokenData.tokenId,
@@ -193,7 +193,7 @@ describe.only('DigitalMeterai functionality tests', async () => {
 		await expect(call).to.be.revertedWithCustomError(DigitalMeterai, 'ERROR___InvalidStatus');
 	});
 
-	it('Should fail to bind if already used', async () => {
+	it('Prevent binding if already used', async () => {
 		// TokenId is already used, so it should not be able to be used anymore
 		const call = DigitalMeterai.connect(address2).bind(TokenId, sampleDocument, samplePassword);
 
