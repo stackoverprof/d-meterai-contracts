@@ -27,7 +27,7 @@ describe.only('DigitalMeterai functionality tests', async () => {
 		[address1, address2, address3] = await ethers.getSigners();
 	});
 
-	it('Should initializes the NFT Correctly.', async () => {
+	it('Should do initialization correctly.', async () => {
 		const name = await DigitalMeterai.name();
 		const symbol = await DigitalMeterai.symbol();
 
@@ -131,7 +131,7 @@ describe.only('DigitalMeterai functionality tests', async () => {
 		assert.equal(samplePassword, retrievedPassword2);
 	});
 
-	it('Prevent non access-listed users from accessing', async () => {
+	it('Prevent accessing if not listed in access control', async () => {
 		// remove access from address3
 		const txResponse5 = await DigitalMeterai.connect(address2).removeAccessControl(
 			TokenId,

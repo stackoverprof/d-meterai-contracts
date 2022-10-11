@@ -40,9 +40,10 @@ const config: HardhatUserConfig = {
 		enabled: true,
 		outputFile: 'gas-report.txt',
 		noColors: true,
-		currency: 'USD',
+		currency: 'IDR',
 		coinmarketcap: COINMARKETCAP_API_KEY,
 		token: 'ETH',
+		showTimeSpent: true,
 	},
 	abiExporter: {
 		path: '../d-meterai-client/abi',
