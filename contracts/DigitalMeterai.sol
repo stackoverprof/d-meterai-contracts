@@ -2,7 +2,6 @@
 
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
-import 'hardhat/console.sol';
 
 pragma solidity ^0.8.9;
 
@@ -11,14 +10,15 @@ contract DigitalMeterai is ERC721, Ownable {
     // EVENTS
     event DMT___Minted(uint256[] tokenIds);
     event DMT___Bought(uint256 tokenId);
-    event DMT___Bound();
+    event DMT___Bound(uint256 tokenId);
+    event DMT___AccessControlChanged();
 
     // ERRORS
-    error DMT___UnmatchedStatusNotAvailable();
-    error DMT___UnmatchedStatusNotPaid();
-    error DMT___InvalidTransactionIncorrectValue();
-    error DMT___ForbiddenActionsNotOwner();
-    error DMT___OutOfStock();
+    error ERROR___OutOfStock();
+    error ERROR___AccessDenied();
+    error ERROR___InvalidStatus();
+    error ERROR___InvalidPayment();
+    error ERROR___ForbiddenCommand();
 
     // TYPE DECLARATIONS
     enum Status {
@@ -39,23 +39,18 @@ contract DigitalMeterai is ERC721, Ownable {
     uint256 private id = 0;
     string private constant TOKEN_NAME = 'Digital Meterai';
     string private constant TOKEN_SYMBOL = 'DMT';
-    string private constant TOKEN_URI =
-        'ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json';
 
     // DATABASE
-    mapping (uint256 => uint256) private tokenIdToPrice; // Pricing
-    mapping (uint256 => Status) private tokenIdToStatus; // Status
-    mapping (uint256 => string) private tokenIdToDocument; // File binding
+    mapping (uint256 => uint256) private DATA_Price; // Pricing
+    mapping (uint256 => Status) private DATA_Status; // Status
+    mapping (uint256 => string) private DATA_Document; // File binding
+    mapping (uint256 => address[]) private DATA_AccessControl; // Access control
+    mapping (uint256 => string) private DATA_Password; // Password for document
 
     // CONSTRUCTOR
     constructor() ERC721(TOKEN_NAME, TOKEN_SYMBOL) {}
 
     // READ FUNCTIONS
-    /* Get the image of d-Meterai */
-    function tokenURI(uint256) public view virtual override returns (string memory) {
-        return TOKEN_URI;
-    }
-
     /* Get owned tokens data */
     function getMyTokens() external view returns(TokenData[] memory){
         TokenData[] memory tokens = new TokenData[](balanceOf(msg.sender));
@@ -65,9 +60,9 @@ contract DigitalMeterai is ERC721, Ownable {
                 tokens[index] = TokenData({
                     tokenId: i,
                     owner: ownerOf(i),
-                    document: tokenIdToDocument[i],
-                    status: tokenIdToStatus[i],
-                    price: tokenIdToPrice[i]
+                    document: DATA_Document[i],
+                    status: DATA_Status[i],
+                    price: DATA_Price[i]
                 });
                 index++;
             }
@@ -84,7 +79,7 @@ contract DigitalMeterai is ERC721, Ownable {
     function getTotalSupplyByStatus(Status _status) external view onlyOwner returns(uint256) {
         uint256 total = 0;
         for (uint256 i = 0; i < id; i++) {
-            if (tokenIdToStatus[i] == _status) {
+            if (DATA_Status[i] == _status) {
                 total++;
             }
         }
@@ -94,42 +89,68 @@ contract DigitalMeterai is ERC721, Ownable {
     /* Get one available token to buy */
     function getAvailableToken() external view returns(TokenData memory){
         for (uint256 i = 0; i < id; i++) {
-            if (tokenIdToStatus[i] == Status.Available) {
+            if (DATA_Status[i] == Status.Available) {
                 return TokenData({
                     tokenId: i,
                     owner: ownerOf(i),
-                    document: tokenIdToDocument[i],
-                    status: tokenIdToStatus[i],
-                    price: tokenIdToPrice[i]
+                    document: DATA_Document[i],
+                    status: DATA_Status[i],
+                    price: DATA_Price[i]
                 });
             }
         }
-        revert DMT___OutOfStock();
+        revert ERROR___OutOfStock();
     }
 
     /* Get a token data by tokenId */
-    function getToken(uint256 _tokenId) external onlyOwner view returns(TokenData memory){
-        return TokenData({
-            tokenId: _tokenId,
-            owner: ownerOf(_tokenId),
-            document: tokenIdToDocument[_tokenId],
-            status: tokenIdToStatus[_tokenId],
-            price: tokenIdToPrice[_tokenId]
-        });
+    function getToken(uint256 _tokenId) external view returns(TokenData memory){
+        // only those listed in acces control can access
+        for (uint256 i = 0; i < DATA_AccessControl[_tokenId].length; i++) {
+            if (DATA_AccessControl[_tokenId][i] == msg.sender) {
+                return TokenData({
+                            tokenId: _tokenId,
+                            owner: ownerOf(_tokenId),
+                            document: DATA_Document[_tokenId],
+                            status: DATA_Status[_tokenId],
+                            price: DATA_Price[_tokenId]
+                        });
+            }
+        }
+        revert ERROR___AccessDenied();
+    }
+
+    /* Get a password if msg.sender included in access control list*/
+    function getPassword(uint256 _tokenId) external view returns(string memory){
+        // check if msg.sender included in access control list
+        for (uint256 i = 0; i < DATA_AccessControl[_tokenId].length; i++) {
+            if (DATA_AccessControl[_tokenId][i] == msg.sender) {
+                return DATA_Password[_tokenId];
+            }
+        }
+        revert ERROR___AccessDenied();
+    }
+
+    /* Get access control list */
+    function getAccessControl(uint256 _tokenId) external view returns(address[] memory){
+        // only token owner or contract owner can access
+        if (ownerOf(_tokenId) != msg.sender && owner() != msg.sender) revert ERROR___AccessDenied();
+        return DATA_AccessControl[_tokenId];
     }
 
     // ACTION FUNCTIONS
     /* Mint a new d-meterai only by contract owner */
-    function mint(uint256 quantity, uint256 price) external onlyOwner {
-        uint256[] memory tokenIds = new uint256[](quantity);
-        for (uint256 i = 0; i < quantity; i++) {
+    function mint(uint256 _quantity, uint256 _price) external onlyOwner {
+        uint256[] memory tokenIds = new uint256[](_quantity);
+        for (uint256 i = 0; i < _quantity; i++) {
             // Mint new token
             _safeMint(msg.sender, id);
 
             // Set initial data
-            tokenIdToPrice[id] = price;
-            tokenIdToStatus[id] = Status.Available;
-            tokenIdToDocument[id] = '';
+            DATA_Price[id] = _price;
+            DATA_Status[id] = Status.Available;
+            DATA_Document[id] = '';
+            // Update access control
+            DATA_AccessControl[id].push(msg.sender);
             id++;
         }
         // Emit event
@@ -137,45 +158,96 @@ contract DigitalMeterai is ERC721, Ownable {
     }
 
     /* Ownership change, only can be transactioned once from minter to a first buyer */
-    function buy(uint256 tokenId) external payable {
+    function buy(uint256 _tokenId) external payable {
 
         // Only if never Paid yet
-        Status status = tokenIdToStatus[tokenId];
-        if (status != Status.Available) revert DMT___UnmatchedStatusNotAvailable();
+        Status status = DATA_Status[_tokenId];
+        if (status != Status.Available) revert ERROR___InvalidStatus();
 
         // Only if price is correct
-        uint256 price = tokenIdToPrice[tokenId];
-        if (msg.value != price) revert DMT___InvalidTransactionIncorrectValue();
+        uint256 price = DATA_Price[_tokenId];
+        if (msg.value != price) revert ERROR___InvalidPayment();
         
         // Transaction transfer
-        address seller = ownerOf(tokenId);
-        _transfer(seller, msg.sender, tokenId);
+        address seller = ownerOf(_tokenId);
+        _transfer(seller, msg.sender, _tokenId);
         payable(seller).transfer(msg.value);
 
         // Update status
-        tokenIdToStatus[tokenId] = Status.Paid;
+        DATA_Status[_tokenId] = Status.Paid;
+
+        // Update access control
+        DATA_AccessControl[_tokenId].push(msg.sender);
 
         // Emit event
-        emit DMT___Bought(tokenId);
+        emit DMT___Bought(_tokenId);
     }
 
     /* Bind a document to a d-meterai only by owner */
-    function bind(uint256 _tokenId, string memory _document) external {
+    function bind(uint256 _tokenId, string memory _document, string memory _password) external {
         // Only if status is Paid
-        Status status = tokenIdToStatus[_tokenId];
-        if (status != Status.Paid) revert DMT___UnmatchedStatusNotPaid();
+        Status status = DATA_Status[_tokenId];
+        if (status != Status.Paid) revert ERROR___InvalidStatus();
 
         // Only owner can bind
-        address owner = ownerOf(_tokenId);
-        if (owner != msg.sender) revert DMT___ForbiddenActionsNotOwner();
+        if (ownerOf(_tokenId) != msg.sender) revert ERROR___AccessDenied();
 
         // Update binding
-        tokenIdToDocument[_tokenId] = _document;
+        DATA_Document[_tokenId] = _document;
 
         // Update status
-        tokenIdToStatus[_tokenId] = Status.Bound;
+        DATA_Status[_tokenId] = Status.Bound;
+
+        // Update password
+        DATA_Password[_tokenId] = _password;
 
         // Emit event
-        emit DMT___Bound();
+        emit DMT___Bound(_tokenId);
+    }
+
+    /* Add an access control to a d-meterai only by owner */
+    function addAccessControl(uint256 _tokenId, address _address) external {
+        // Only if status is Bound
+        Status status = DATA_Status[_tokenId];
+        if (status != Status.Bound) revert ERROR___InvalidStatus();
+
+        // Only owner can add access control
+        if (ownerOf(_tokenId) != msg.sender && owner() != msg.sender) revert ERROR___AccessDenied();
+
+        // revert if already added
+        for (uint256 i = 0; i < DATA_AccessControl[_tokenId].length; i++) {
+            if (DATA_AccessControl[_tokenId][i] == _address) revert ERROR___ForbiddenCommand();
+        }
+
+        // Update access control
+        DATA_AccessControl[_tokenId].push(_address);
+
+        // Emit event
+        emit DMT___AccessControlChanged();
+    }
+
+    /* Remove an access control from a d-meterai only by owner */
+    function removeAccessControl(uint256 _tokenId, address _address) external {
+        // Only if status is Bound
+        Status status = DATA_Status[_tokenId];
+        if (status != Status.Bound) revert ERROR___InvalidStatus();
+
+        // Only owner can remove access control
+        if (ownerOf(_tokenId) != msg.sender && owner() != msg.sender) revert ERROR___AccessDenied();
+
+        // Owner cannot be removed from access control
+        if (_address == owner() || _address == ownerOf(_tokenId)) revert ERROR___ForbiddenCommand();
+
+        // Update access control
+        for (uint256 i = 0; i < DATA_AccessControl[_tokenId].length; i++) {
+            if (DATA_AccessControl[_tokenId][i] == _address) {
+                DATA_AccessControl[_tokenId][i] = DATA_AccessControl[_tokenId][DATA_AccessControl[_tokenId].length - 1];
+                DATA_AccessControl[_tokenId].pop();
+                break;
+            }
+        }
+
+        // Emit event
+        emit DMT___AccessControlChanged();
     }
 }
