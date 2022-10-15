@@ -4,7 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { assert, expect } from 'chai';
 import { DigitalMeterai, DigitalMeterai__factory } from '../typechain-types';
 
-const sampleDocument = 'ipfs://QmaVkBn2tKmjbhphU7eyztbvSQU5EXDdqRyXZtRhSGgJGo';
+const sampleDocument = 'QmaVkBn2tKmjbhphU7eyztbvSQU5EXDdqRyXZtRhSGgJGo';
 const samplePassword = '1234567890';
 
 describe.only('DigitalMeterai functionality tests', async () => {
