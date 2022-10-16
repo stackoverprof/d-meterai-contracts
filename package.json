@@ -1,9 +1,10 @@
 {
 	"name": "digital-meterai",
 	"scripts": {
-		"deploy": "npx hardhat run scripts/DigitalMeterai.deploy.ts --network goerli",
-		"deploy-local": "npx hardhat run scripts/DigitalMeterai.deploy.ts --network localhost",
-		"export": "npx hardhat export-abi"
+		"export": "hardhat export-abi",
+		"network": "hardhat export-abi",
+		"deploy-goerli": "hardhat run scripts/DigitalMeterai.deploy.ts --network goerli",
+		"deploy-local": "hardhat run scripts/DigitalMeterai.deploy.ts --network localhost"
 	},
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "^2.0.0",
