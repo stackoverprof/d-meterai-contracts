@@ -2,7 +2,8 @@
 	"name": "digital-meterai",
 	"scripts": {
 		"export": "hardhat export-abi",
-		"network": "hardhat export-abi",
+		"network": "hardhat node",
+		"test": "hardhat test --network localhost",
 		"deploy-goerli": "hardhat run scripts/DigitalMeterai.deploy.ts --network goerli",
 		"deploy-local": "hardhat run scripts/DigitalMeterai.deploy.ts --network localhost"
 	},

@@ -16,7 +16,11 @@ const config: HardhatUserConfig = {
 	solidity: '0.8.17',
 	defaultNetwork: 'hardhat',
 	networks: {
-		hardhat: {},
+		hardhat: {
+			accounts: {
+				accountsBalance: '1000000000000000000000000',
+			},
+		},
 		localhost: {
 			url: 'http://127.0.0.1:8545/',
 			chainId: 31337,
