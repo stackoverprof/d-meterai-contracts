@@ -132,9 +132,14 @@ contract DigitalMeterai is ERC721, Ownable {
 
     /* Get access control list */
     function getAccessControl(uint256 _tokenId) external view returns(address[] memory){
-        // only token owner or contract owner can access
-        if (ownerOf(_tokenId) != msg.sender && owner() != msg.sender) revert ERROR___AccessDenied();
-        return DATA_AccessControl[_tokenId];
+        // only token owner or contract owner or if sender listed on DATA_AccessControl can access
+        // check if msg.sender included in access control list
+        for (uint256 i = 0; i < DATA_AccessControl[_tokenId].length; i++) {
+            if (DATA_AccessControl[_tokenId][i] == msg.sender) {
+                return DATA_AccessControl[_tokenId];
+            }
+        }
+        revert ERROR___AccessDenied();
     }
 
     // ACTION FUNCTIONS
